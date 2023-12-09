@@ -176,8 +176,7 @@ class MainActivity : ComponentActivity() {
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
+        if (auth.currentUser == null) {
             //reload()
             // Create an explicit intent to start SecondActivity
             val intent = Intent(this, LoginActivity::class.java)
@@ -188,6 +187,9 @@ class MainActivity : ComponentActivity() {
             // Start SecondActivity
             ContextCompat.startActivity(this, intent, null)
         }
+    }
+    public override fun onDestroy() {
+        super.onDestroy()
     }
 }
 
@@ -241,6 +243,7 @@ fun Drawer(mainActivity: MainActivity, email: String, scaffoldState: ScaffoldSta
                     "Successfully Logged Out.",
                     Toast.LENGTH_SHORT,
                 ).show()
+                mainActivity.finish()
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -105,7 +105,10 @@ fun keyboardAsState(): State<Boolean> {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginPage(loginActivity: LoginActivity, auth: FirebaseAuth) {
+fun LoginPage(
+    loginActivity: LoginActivity,
+    auth: FirebaseAuth
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -269,6 +272,5 @@ fun LoginPage(loginActivity: LoginActivity, auth: FirebaseAuth) {
 @Composable
 fun GreetingPreview2() {
     Assignment4Theme {
-        //LoginPage()
     }
 }
