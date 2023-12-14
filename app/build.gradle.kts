@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -58,7 +59,7 @@ dependencies {
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth")
-
+    implementation ("com.google.android.libraries.places:places:3.3.0")
     implementation ("androidx.compose.ui:ui:1.6.0-beta02")
     implementation ("androidx.compose.material:material:1.6.0-beta02")
     implementation ("androidx.compose.material3:material3:1.2.0-alpha12")
