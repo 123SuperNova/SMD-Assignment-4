@@ -10,6 +10,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
 
 @Composable
 fun AddEditTripPage(trip: Trip, modifier: Modifier = Modifier){
@@ -33,7 +43,7 @@ fun AddEditTripPage(trip: Trip, modifier: Modifier = Modifier){
                 ) {
                     Text(
                         "\uD83C\uDF3F  Activities",
-                        style = MaterialTheme.typography.h3
+//                        style = MaterialTheme.typography.h3
                     )
                 }
             }
@@ -51,8 +61,8 @@ private fun ActivityCard(title: String, start: Date, end: Date, desc: String){
             .fillMaxWidth()
             .wrapContentHeight(),
         shape = MaterialTheme.shapes.medium,
-        elevation = 5.dp,
-        backgroundColor = MaterialTheme.colors.surface
+//        elevation = 5.dp,
+//        backgroundColor = MaterialTheme.colors.surface
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -67,12 +77,12 @@ private fun ActivityCard(title: String, start: Date, end: Date, desc: String){
             Column(Modifier.padding(8.dp)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.h4,
-                    color = MaterialTheme.colors.onSurface,
+//                    style = MaterialTheme.typography.h4,
+//                    color = MaterialTheme.colors.onSurface,
                 )
                 Text(
                     text = desc,
-                    style = MaterialTheme.typography.body2,
+//                    style = MaterialTheme.typography.body2,
                 )
             }
         }
