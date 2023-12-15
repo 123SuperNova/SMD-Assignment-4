@@ -108,5 +108,5 @@ secrets {
     //    enabled (can be the same project and key as in Step 2):
     //        MAPS_API_KEY=YOUR_API_KEY
     propertiesFileName = "secrets.properties"
-    defaultPropertiesFileName 'local.properties'
+    defaultPropertiesFileName 'local.defaults.properties'
 }

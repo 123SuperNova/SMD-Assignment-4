@@ -58,6 +58,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import com.google.android.libraries.places.api.Places
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
