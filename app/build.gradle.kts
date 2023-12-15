@@ -56,15 +56,16 @@ dependencies {
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     // KTX for the Places SDK for Android library
-    implementation 'com.google.maps.android:places-ktx:3.0.0'
-
+    implementation('com.google.maps.android:places-ktx:3.0.0')
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.core:core-ktx:1.10.0")
+    // google places library
     implementation("com.google.android.libraries.places:places:3.3.0")
     implementation("com.android.databinding:viewbinding:8.0.0")
+//    implementation("com.google.android.libraries.places:places:2.6.0")
 
     implementation ("androidx.compose.ui:ui:1.6.0-beta02")
     implementation ("androidx.compose.material:material:1.6.0-beta02")
