@@ -1,5 +1,4 @@
-package com.example.placesdemo.model
-
+package com.example.assignment4.sampledata
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent

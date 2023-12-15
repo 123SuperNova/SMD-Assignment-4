@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.example.placesdemo.model
-
+package com.example.assignment4.sampledata
 import java.io.Serializable
 import java.util.*
 
