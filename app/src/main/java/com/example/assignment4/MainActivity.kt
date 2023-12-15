@@ -337,9 +337,9 @@ fun Body(
                     .clip(shape = RoundedCornerShape(16.dp))
                     .background(Color.LightGray),
                 content = {
-                    userData?.let {
-                        items(it.plans) { trip->
-                            TripPlans(mainActivity, plan = trip)
+                    viewModel.userData.value?.let { it ->
+                        items(it.plans) {trip->
+                            TripPlans(mainActivity,plan = trip)
                         }
                     }
                 })
