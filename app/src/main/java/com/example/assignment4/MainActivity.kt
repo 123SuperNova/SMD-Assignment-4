@@ -63,15 +63,15 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     val apiKey = BuildConfig.PLACES_API_KEY
-        if (apiKey.isEmpty()) {
-            Toast.makeText(this, getString(R.string.error_api_key), Toast.LENGTH_LONG).show()
-            return
-        }
+    if (apiKey.isEmpty()) {
+        Toast.makeText(this, getString(R.string.error_api_key), Toast.LENGTH_LONG).show()
+        return
+    }
 
-        // Setup Places Client
-        if (!Places.isInitialized()) {
-            Places.initialize(applicationContext, apiKey)
-        }
+    // Setup Places Client
+    if (!Places.isInitialized()) {
+        Places.initialize(applicationContext, apiKey)
+    }
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
         "UnusedMaterialScaffoldPaddingParameter"
     )
