@@ -52,8 +52,15 @@ android {
 }
 
 dependencies {
-    // Import the BoM for the Firebase platform
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+
+// Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+
+    // Declare the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-firestore")
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
