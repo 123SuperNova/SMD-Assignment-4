@@ -29,6 +29,12 @@
             android:label="@string/title_activity_sign_up"
             android:theme="@style/Theme.Assignment4" />
         <activity
+            android:name=".AddEditTripActivity"
+            android:exported="false"
+            android:label="AddEditTripActivity"
+            android:theme="@style/Theme.Assignment4">
+        </activity>
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:label="@string/title_activity_login"

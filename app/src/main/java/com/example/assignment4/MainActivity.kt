@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -75,6 +78,7 @@ class MainActivity : ComponentActivity() {
 //    }
     Places.initialize(this, BuildConfig.PLACES_API_KEY)
 
+    private val myViewModel: MyViewModel by viewModels()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
         "UnusedMaterialScaffoldPaddingParameter"
     )
@@ -157,6 +161,14 @@ class MainActivity : ComponentActivity() {
                                                     "Creating New Trip Plan",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
+                                                // Create an explicit intent to start SecondActivity
+                                                val intent = Intent(activity, AddEditTripActivity::class.java)
+
+                                                // Add any extra data you want to pass to SecondActivity
+                                                intent.putExtra("taskId", "-1")
+
+                                                // Start SecondActivity
+                                                ContextCompat.startActivity(activity, intent, null)
                                             }
 
                                             else -> {}
@@ -179,7 +191,7 @@ class MainActivity : ComponentActivity() {
                     // Pass the body in
                                 // content parameter
                         content = {
-                            Body(name = currentUserEmail)
+                            Body(activity, myViewModel)
                         },
                     )
                 }
@@ -196,7 +208,7 @@ class MainActivity : ComponentActivity() {
             val intent = Intent(this, LoginActivity::class.java)
 
             // Add any extra data you want to pass to SecondActivity
-            intent.putExtra("key", "Hello from MainActivity!")
+            //intent.putExtra("key", "Hello from MainActivity!")
 
             // Start SecondActivity
             ContextCompat.startActivity(this, intent, null)
@@ -295,7 +307,19 @@ fun TopBar(onMenuClicked: () -> Unit) {
 }
 
 @Composable
-fun Body(name: String, modifier: Modifier = Modifier) {
+fun Body(
+    mainActivity: MainActivity,
+    viewModel: MyViewModel = MyViewModel(),
+    modifier: Modifier = Modifier
+) {
+    // Observe the LiveData in a Composable
+    val userData by viewModel.userData.observeAsState()
+
+    // Trigger data retrieval when the composable is first created
+    DisposableEffect(Unit) {
+        viewModel.getFirestoreData()
+        onDispose { /* Cleanup, if needed */ }
+    }
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -312,30 +336,37 @@ fun Body(name: String, modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(8.dp)
         )
-        var array = generateDummyTripPlansList(3)
-        LazyColumn(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(8.dp)
-                .clip(shape = RoundedCornerShape(16.dp))
-                .background(Color.LightGray),
-            content = {
-            items(array){
-                TripPlans(plan = it)
-            }
-        })
-        Text(
-            text = "Suggestions",
-            fontSize = 24.sp,
-            textAlign = TextAlign.Center,
-            color = Color(25, 140, 255),
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        )
+
+        if (userData?.plans?.isEmpty() == true){
+            Text(text="No Trip Plans")
+        }
+        else {
+            LazyColumn(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .clip(shape = RoundedCornerShape(16.dp))
+                    .background(Color.LightGray),
+                content = {
+                    userData?.let {
+                        items(it.plans) { trip->
+                            TripPlans(mainActivity, plan = trip)
+                        }
+                    }
+                })
+            Text(
+                text = "Suggestions",
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+                color = Color(25, 140, 255),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+        }
         var array2 = generateDummySuggestionsList(3)
         LazyColumn(
             verticalArrangement = Arrangement.Top,
@@ -348,14 +379,14 @@ fun Body(name: String, modifier: Modifier = Modifier) {
                 .background(Color.LightGray),
             content = {
                 items(array2){
-                    TripPlans(plan = it)
+                    TripPlans(mainActivity,plan = it)
                 }
             })
     }
 }
 
 @Composable
-fun TripPlans(plan: Plans){
+fun TripPlans(mainActivity: MainActivity,plan: Trip){
     Column (
         modifier = Modifier
             .fillMaxWidth()
@@ -371,14 +402,14 @@ fun TripPlans(plan: Plans){
                 .padding(16.dp)
         ){
             Text(
-                text = plan.name,
+                text = plan.title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color = Color.White
             )
             Spacer(modifier = Modifier.padding(end = 6.dp))
             Text(
-                text = plan.datetimeV,
+                text = "",
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(
                    textAlign = TextAlign.End
@@ -398,7 +429,16 @@ fun TripPlans(plan: Plans){
                 fontSize = 16.sp,
                 color = Color.LightGray
             )
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                // Create an explicit intent to start SecondActivity
+                val intent = Intent(mainActivity, AddEditTripActivity::class.java)
+
+                // Add any extra data you want to pass to SecondActivity
+                intent.putExtra("taskId", plan.id.toString())
+
+                // Start SecondActivity
+                ContextCompat.startActivity(mainActivity, intent, null)
+            }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = "Go to Details",
@@ -409,32 +449,14 @@ fun TripPlans(plan: Plans){
     }
 }
 
-data class Plans(val name: String, val datetimeV: String, val description: String)
 
-fun generateDummyTripPlansList(size: Int): List<Plans> {
-    val dummyList = mutableListOf<Plans>()
-
-    for (i in 1..size) {
-        dummyList.add(
-            Plans(
-                name = "Trip $i",
-                datetimeV = "2023-01-01 12:00 PM", // Replace with your desired format and data
-                description = "Description for Trip $i"
-            )
-        )
-    }
-
-    return dummyList
-}
-
-fun generateDummySuggestionsList(size: Int): List<Plans> {
-    val dummyList = mutableListOf<Plans>()
+fun generateDummySuggestionsList(size: Int): List<Trip> {
+    val dummyList = mutableListOf<Trip>()
 
     for (i in 1..size) {
         dummyList.add(
-            Plans(
-                name = "Suggestion $i",
-                datetimeV = "2023-01-01 12:00 PM", // Replace with your desired format and data
+            Trip(
+                title = "Suggestion $i",
                 description = "Description for Suggestion $i"
             )
         )
@@ -447,6 +469,6 @@ fun generateDummySuggestionsList(size: Int): List<Plans> {
 @Composable
 fun AppPreview() {
     Assignment4Theme {
-        Body("Android")
+        //Body()
     }
 }

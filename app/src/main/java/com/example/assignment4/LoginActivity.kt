@@ -89,7 +89,7 @@ class LoginActivity : ComponentActivity() {
             val intent = Intent(this, MainActivity::class.java)
 
             // Add any extra data you want to pass to SecondActivity
-            intent.putExtra("key", "Hello from MainActivity!")
+            //intent.putExtra("key", "Hello from MainActivity!")
 
             // Start SecondActivity
             ContextCompat.startActivity(this, intent, null)
