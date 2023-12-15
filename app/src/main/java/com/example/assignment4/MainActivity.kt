@@ -78,6 +78,13 @@ class MainActivity : ComponentActivity() {
 //    }
 //    Places.initialize(this, BuildConfig.PLACES_API_KEY)
 
+
+    // Initialize the Places API with your API key
+    Places.initialize(applicationContext, BuildConfig.PLACES_API_KEY)
+
+    // Create a PlacesClient
+    placesClient = Places.createClient(this)
+
     private val myViewModel: MyViewModel by viewModels()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
         "UnusedMaterialScaffoldPaddingParameter"
@@ -191,8 +198,7 @@ class MainActivity : ComponentActivity() {
                     // Pass the body in
                                 // content parameter
                         content = {
-                            Body(activity, myViewModel)
-                        },
+                            Body(mainActivity = this, viewModel = myViewModel)                        },
                     )
                 }
             }
@@ -309,7 +315,7 @@ fun TopBar(onMenuClicked: () -> Unit) {
 @Composable
 fun Body(
     mainActivity: MainActivity,
-    viewModel: MyViewModel = MyViewModel(),
+    viewModel: MyViewModel, // Pass the view model instance
     modifier: Modifier = Modifier
 ) {
     // Observe the LiveData in a Composable
