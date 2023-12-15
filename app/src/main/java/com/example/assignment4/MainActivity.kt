@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
 //    if (!Places.isInitialized()) {
 //        Places.initialize(applicationContext, apiKey)
 //    }
-    Places.initialize(this, BuildConfig.PLACES_API_KEY)
+//    Places.initialize(this, BuildConfig.PLACES_API_KEY)
 
     private val myViewModel: MyViewModel by viewModels()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
