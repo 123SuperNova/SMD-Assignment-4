@@ -111,10 +111,10 @@ class PlaceAutocompleteActivity : ComponentActivity() {
 //        setLoading(false)
 //    }
 
-    override fun onSaveInstanceState(bundle: Bundle) {
-        super.onSaveInstanceState(bundle)
-        fieldSelector.onSaveInstanceState(bundle)
-    }
+//    override fun onSaveInstanceState(bundle: Bundle) {
+//        super.onSaveInstanceState(bundle)
+//        fieldSelector.onSaveInstanceState(bundle)
+//    }
 
     private fun setupAutocompleteSupportFragment() {
         val autocompleteSupportFragment =
