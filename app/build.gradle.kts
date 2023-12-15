@@ -55,16 +55,21 @@ android {
 dependencies {
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // KTX for the Places SDK for Android library
+    implementation 'com.google.maps.android:places-ktx:3.0.0'
+
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth")
-    implementation ("com.google.android.libraries.places:places:3.3.0")
+    implementation("androidx.core:core-ktx:1.10.0")
+    implementation("com.google.android.libraries.places:places:3.3.0")
+    implementation("com.android.databinding:viewbinding:8.0.0")
+
     implementation ("androidx.compose.ui:ui:1.6.0-beta02")
     implementation ("androidx.compose.material:material:1.6.0-beta02")
     implementation ("androidx.compose.material3:material3:1.2.0-alpha12")
     implementation ("androidx.compose.ui:ui-tooling:1.6.0-beta02")
-
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
@@ -91,4 +96,17 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+secrets {
+    // To add your Google Maps Platform API key to this project:
+    // 1. Create or open file secrets.properties in the root folder of the project, which will be
+    // read by secrets_gradle_plugin
+    // 2. Add this line, replacing YOUR_API_KEY with a key from a project with Places API enabled:
+    //        PLACES_API_KEY=YOUR_API_KEY
+    // 3. Add this line, replacing YOUR_API_KEY with a key from a project with Maps SDK for Android
+    //    enabled (can be the same project and key as in Step 2):
+    //        MAPS_API_KEY=YOUR_API_KEY
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName 'local.properties'
 }
