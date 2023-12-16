@@ -291,10 +291,6 @@ fun AddEditTripPage(addEditTripActivity: AddEditTripActivity,tripId: String, vie
                 Text("Save")
             }
 
-        }
-
-    }
-}
 @Composable
 private fun ActivityCard(activity: Activity){
     Column (
