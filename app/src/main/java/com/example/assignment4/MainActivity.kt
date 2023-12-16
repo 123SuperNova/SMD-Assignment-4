@@ -1,11 +1,14 @@
 package com.example.assignment4
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -49,19 +53,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.assignment4.ui.theme.Assignment4Theme
+import com.google.android.gms.common.api.Status
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
-import com.google.android.libraries.places.api.Places
+import java.util.Arrays
+import java.util.Locale
+import androidx.fragment.app.setFragmentResult
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -76,14 +92,18 @@ class MainActivity : ComponentActivity() {
 //    if (!Places.isInitialized()) {
 //        Places.initialize(applicationContext, apiKey)
 //    }
-//    Places.initialize(this, BuildConfig.PLACES_API_KEY)
+//    Places.initialize(this, apiKey)
+
+//    // Initialize the SDK
+//    Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
+//
+//    // Create a new PlacesClient instance
+//    val placesClient = Places.createClient(this)
+
+// Set the fields to specify which types of place data to
+// return after the user has made a selection.
 
 
-    // Initialize the Places API with your API key
-    Places.initialize(applicationContext, BuildConfig.PLACES_API_KEY)
-
-    // Create a PlacesClient
-    placesClient = Places.createClient(this)
 
     private val myViewModel: MyViewModel by viewModels()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
@@ -105,11 +125,40 @@ class MainActivity : ComponentActivity() {
                 var activity = this
 
                 var isFabExpanded by remember { mutableStateOf(false) }
+
+                // Initialize the AutocompleteSupportFragment.
+                val autocompleteFragment =
+                    supportFragmentManager.findFragmentById(R.id.autocomplete_fragment)
+                            as AutocompleteSupportFragment
+
+                // Specify the types of place data to return.
+                autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
+
+                // Set up a PlaceSelectionListener to handle the response.
+                autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                    override fun onPlaceSelected(place: Place) {
+                        // TODO: Get info about the selected place.
+                        Log.i(TAG, "Place: ${place.name}, ${place.id}")
+                    }
+
+                    override fun onError(status: Status) {
+                        // TODO: Handle the error.
+                        Log.i(TAG, "An error occurred: $status")
+                    }
+                })
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+//                    val fields = listOf(Place.Field.ID, Place.Field.NAME)
+//
+//                    // Start the autocomplete intent.
+//                    val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
+//                        .build(this)
+//                    startAutocomplete.launch(intent)
+
 
                     // Scaffold Composable
                     Scaffold(
@@ -223,6 +272,22 @@ class MainActivity : ComponentActivity() {
     public override fun onDestroy() {
         super.onDestroy()
     }
+//    private val startAutocomplete =
+//        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+//            if (result.resultCode == Activity.RESULT_OK) {
+//                val intent = result.data
+//                if (intent != null) {
+//                    val place = Autocomplete.getPlaceFromIntent(intent)
+//                    Log.i(
+//                        TAG, "Place: ${place.name}, ${place.id}"
+//                    )
+//                }
+//            } else if (result.resultCode == Activity.RESULT_CANCELED) {
+//                // The user canceled the operation.
+//                Log.i(TAG, "User canceled autocomplete")
+//            }
+//        }
+
 }
 
 @Composable
@@ -287,6 +352,7 @@ fun Drawer(mainActivity: MainActivity, email: String, scaffoldState: ScaffoldSta
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -476,5 +542,93 @@ fun generateDummySuggestionsList(size: Int): List<Trip> {
 fun AppPreview() {
     Assignment4Theme {
         //Body()
+    }
+}
+
+data class AutocompletePlace(
+    val placeId: String,
+    val name: String
+)
+
+fun Place.toAutocompletePlace(): AutocompletePlace {
+    return AutocompletePlace(placeId!!, name!!)
+}
+
+@Composable
+fun AutocompletePlacePicker(onPlaceSelected: (AutocompletePlace) -> Unit) {
+    val context = LocalContext.current
+    val density = LocalDensity.current.density
+    var selectedPlace by remember { mutableStateOf<AutocompletePlace?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val autocompleteFragment = remember {
+        AutocompleteSupportFragment.newInstance().apply {
+            setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
+            setActivityMode(AutocompleteActivityMode.OVERLAY)
+        }
+    }
+
+    // Compose UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Autocomplete fragment
+        AndroidView(factory = { context ->
+            autocompleteFragment.requireView().apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    (48 * density).toInt() // Adjust height as needed
+                )
+            }
+        }) { view ->
+            // Add the view to your Compose layout
+        }
+
+        // Search bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                autocompleteFragment.setText(it)
+            },
+            label = { Text("Search for a place") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
+        // Button to log selected place
+        Button(
+            onClick = {
+                selectedPlace?.let {
+                    onPlaceSelected(it)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text("Log Selected Place")
+        }
+    }
+
+    // Set up the PlaceSelectionListener
+    LaunchedEffect(autocompleteFragment) {
+        autocompleteFragment.setOnPlaceSelectedListener(object : AutocompleteSupportFragment.OnPlaceSelectedListener() {
+            override fun onPlaceSelected(place: AutocompletePlace) {
+                selectedPlace = place
+                keyboardController?.hide()
+            }
+
+            override fun onError(status: Status) {
+                Log.e("AutocompleteExample", "Error: $status")
+            }
+        })
     }
 }

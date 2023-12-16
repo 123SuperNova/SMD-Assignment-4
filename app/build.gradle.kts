@@ -41,6 +41,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        dataBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -59,7 +60,8 @@ dependencies {
 // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     // KTX for the Places SDK for Android library
-    implementation('com.google.maps.android:places-ktx:3.0.0')
+    implementation("com.google.maps.android:places-ktx:3.0.0")
+    implementation("com.google.android.libraries.places:places:3.3.0")
 
     // Declare the dependency for the Cloud Firestore library
     // When using the BoM, you don't specify versions in Firebase library dependencies
@@ -72,7 +74,28 @@ dependencies {
     // google places library
     implementation("com.google.android.libraries.places:places:3.3.0")
     implementation("com.android.databinding:viewbinding:8.0.0")
-//    implementation("com.google.android.libraries.places:places:2.6.0")
+    implementation("com.google.android.libraries.places:places:2.6.0")
+
+    //lifecyle
+    val lifecycle_version = "2.6.2"
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+    // Lifecycles only (without ViewModel or LiveData)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
+    // Lifecycle utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
+
+    // Saved state module for ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version")
+
+//    // Annotation processor
+//    kapt("androidx.lifecycle:lifecycle-compiler:$lifecycle_version")
+//    kapt("groupId:artifactId:version")
+
 
     implementation ("androidx.compose.ui:ui:1.6.0-beta02")
     implementation ("androidx.compose.material:material:1.6.0-beta02")
@@ -107,14 +130,16 @@ dependencies {
 }
 
 secrets {
-    // To add your Google Maps Platform API key to this project:
-    // 1. Create or open file secrets.properties in the root folder of the project, which will be
-    // read by secrets_gradle_plugin
-    // 2. Add this line, replacing YOUR_API_KEY with a key from a project with Places API enabled:
-    //        PLACES_API_KEY=YOUR_API_KEY
-    // 3. Add this line, replacing YOUR_API_KEY with a key from a project with Maps SDK for Android
-    //    enabled (can be the same project and key as in Step 2):
-    //        MAPS_API_KEY=YOUR_API_KEY
+    // Optionally specify a different file name containing your secrets.
+    // The plugin defaults to "local.properties"
     propertiesFileName = "secrets.properties"
-    defaultPropertiesFileName 'local.defaults.properties'
+
+    // A properties file containing default secret values. This file can be
+    // checked in version control.
+    defaultPropertiesFileName = "local.defaults.properties"
+
+    // Configure which keys should be ignored by the plugin by providing regular expressions.
+    // "sdk.dir" is ignored by default.
+    ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+    ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
 }
