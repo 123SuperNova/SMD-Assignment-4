@@ -11,4 +11,6 @@
     <string name="login_failed">"Login failed"</string>
     <string name="title_activity_sign_up">SignUpActivity</string>
     <string name="title_activity_cvetrip">CVETripActivity</string>
+    <string name="error_api_key" translatable="false">No API key defined in gradle.properties</string>
+
 </resources>

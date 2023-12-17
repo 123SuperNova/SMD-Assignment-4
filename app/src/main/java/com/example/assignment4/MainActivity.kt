@@ -1,11 +1,15 @@
 package com.example.assignment4
 
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,7 +41,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,21 +53,59 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.assignment4.ui.theme.Assignment4Theme
+import com.google.android.gms.common.api.Status
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import java.util.Arrays
+import java.util.Locale
+import androidx.fragment.app.setFragmentResult
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
+
+//    val apiKey = BuildConfig.PLACES_API_KEY
+//    if (apiKey.isEmpty()) {
+//        Toast.makeText(this, getString(R.string.error_api_key), Toast.LENGTH_LONG).show()
+//        return
+//    }
+//
+//    // Setup Places Client
+//    if (!Places.isInitialized()) {
+//        Places.initialize(applicationContext, apiKey)
+//    }
+//    Places.initialize(this, apiKey)
+
+//    // Initialize the SDK
+//    Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
+//
+//    // Create a new PlacesClient instance
+//    val placesClient = Places.createClient(this)
+
+// Set the fields to specify which types of place data to
+// return after the user has made a selection.
+
+
+
+    private val myViewModel: MyViewModel by viewModels()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter",
         "UnusedMaterialScaffoldPaddingParameter"
     )
@@ -80,11 +125,40 @@ class MainActivity : ComponentActivity() {
                 var activity = this
 
                 var isFabExpanded by remember { mutableStateOf(false) }
+
+                // Initialize the AutocompleteSupportFragment.
+                val autocompleteFragment =
+                    supportFragmentManager.findFragmentById(R.id.autocomplete_fragment)
+                            as AutocompleteSupportFragment
+
+                // Specify the types of place data to return.
+                autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
+
+                // Set up a PlaceSelectionListener to handle the response.
+                autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                    override fun onPlaceSelected(place: Place) {
+                        // TODO: Get info about the selected place.
+                        Log.i(TAG, "Place: ${place.name}, ${place.id}")
+                    }
+
+                    override fun onError(status: Status) {
+                        // TODO: Handle the error.
+                        Log.i(TAG, "An error occurred: $status")
+                    }
+                })
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+//                    val fields = listOf(Place.Field.ID, Place.Field.NAME)
+//
+//                    // Start the autocomplete intent.
+//                    val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
+//                        .build(this)
+//                    startAutocomplete.launch(intent)
+
 
                     // Scaffold Composable
                     Scaffold(
@@ -143,6 +217,14 @@ class MainActivity : ComponentActivity() {
                                                     "Creating New Trip Plan",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
+                                                // Create an explicit intent to start SecondActivity
+                                                val intent = Intent(activity, AddEditTripActivity::class.java)
+
+                                                // Add any extra data you want to pass to SecondActivity
+                                                intent.putExtra("taskId", "-1")
+
+                                                // Start SecondActivity
+                                                ContextCompat.startActivity(activity, intent, null)
                                             }
 
                                             else -> {}
@@ -165,8 +247,7 @@ class MainActivity : ComponentActivity() {
                     // Pass the body in
                                 // content parameter
                         content = {
-                            Body(name = currentUserEmail)
-                        },
+                            Body(mainActivity = this, viewModel = myViewModel)                        },
                     )
                 }
             }
@@ -176,19 +257,37 @@ class MainActivity : ComponentActivity() {
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
+        if (auth.currentUser == null) {
             //reload()
             // Create an explicit intent to start SecondActivity
             val intent = Intent(this, LoginActivity::class.java)
 
             // Add any extra data you want to pass to SecondActivity
-            intent.putExtra("key", "Hello from MainActivity!")
+            //intent.putExtra("key", "Hello from MainActivity!")
 
             // Start SecondActivity
             ContextCompat.startActivity(this, intent, null)
         }
     }
+    public override fun onDestroy() {
+        super.onDestroy()
+    }
+//    private val startAutocomplete =
+//        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+//            if (result.resultCode == Activity.RESULT_OK) {
+//                val intent = result.data
+//                if (intent != null) {
+//                    val place = Autocomplete.getPlaceFromIntent(intent)
+//                    Log.i(
+//                        TAG, "Place: ${place.name}, ${place.id}"
+//                    )
+//                }
+//            } else if (result.resultCode == Activity.RESULT_CANCELED) {
+//                // The user canceled the operation.
+//                Log.i(TAG, "User canceled autocomplete")
+//            }
+//        }
+
 }
 
 @Composable
@@ -241,6 +340,7 @@ fun Drawer(mainActivity: MainActivity, email: String, scaffoldState: ScaffoldSta
                     "Successfully Logged Out.",
                     Toast.LENGTH_SHORT,
                 ).show()
+                mainActivity.finish()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,6 +352,7 @@ fun Drawer(mainActivity: MainActivity, email: String, scaffoldState: ScaffoldSta
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -278,7 +379,19 @@ fun TopBar(onMenuClicked: () -> Unit) {
 }
 
 @Composable
-fun Body(name: String, modifier: Modifier = Modifier) {
+fun Body(
+    mainActivity: MainActivity,
+    viewModel: MyViewModel, // Pass the view model instance
+    modifier: Modifier = Modifier
+) {
+    // Observe the LiveData in a Composable
+    val userData by viewModel.userData.observeAsState()
+
+    // Trigger data retrieval when the composable is first created
+    DisposableEffect(Unit) {
+        viewModel.getFirestoreData()
+        onDispose { /* Cleanup, if needed */ }
+    }
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -295,30 +408,37 @@ fun Body(name: String, modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(8.dp)
         )
-        var array = generateDummyTripPlansList(3)
-        LazyColumn(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(8.dp)
-                .clip(shape = RoundedCornerShape(16.dp))
-                .background(Color.LightGray),
-            content = {
-            items(array){
-                TripPlans(plan = it)
-            }
-        })
-        Text(
-            text = "Suggestions",
-            fontSize = 24.sp,
-            textAlign = TextAlign.Center,
-            color = Color(25, 140, 255),
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        )
+
+        if (userData?.plans?.isEmpty() == true){
+            Text(text="No Trip Plans")
+        }
+        else {
+            LazyColumn(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .clip(shape = RoundedCornerShape(16.dp))
+                    .background(Color.LightGray),
+                content = {
+                    userData?.let {
+                        items(it.plans) { trip->
+                            TripPlans(mainActivity, plan = trip)
+                        }
+                    }
+                })
+            Text(
+                text = "Suggestions",
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+                color = Color(25, 140, 255),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+        }
         var array2 = generateDummySuggestionsList(3)
         LazyColumn(
             verticalArrangement = Arrangement.Top,
@@ -331,14 +451,14 @@ fun Body(name: String, modifier: Modifier = Modifier) {
                 .background(Color.LightGray),
             content = {
                 items(array2){
-                    TripPlans(plan = it)
+                    TripPlans(mainActivity,plan = it)
                 }
             })
     }
 }
 
 @Composable
-fun TripPlans(plan: Plans){
+fun TripPlans(mainActivity: MainActivity,plan: Trip){
     Column (
         modifier = Modifier
             .fillMaxWidth()
@@ -354,14 +474,14 @@ fun TripPlans(plan: Plans){
                 .padding(16.dp)
         ){
             Text(
-                text = plan.name,
+                text = plan.title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color = Color.White
             )
             Spacer(modifier = Modifier.padding(end = 6.dp))
             Text(
-                text = plan.datetimeV,
+                text = "",
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(
                    textAlign = TextAlign.End
@@ -381,7 +501,16 @@ fun TripPlans(plan: Plans){
                 fontSize = 16.sp,
                 color = Color.LightGray
             )
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                // Create an explicit intent to start SecondActivity
+                val intent = Intent(mainActivity, AddEditTripActivity::class.java)
+
+                // Add any extra data you want to pass to SecondActivity
+                intent.putExtra("taskId", plan.id.toString())
+
+                // Start SecondActivity
+                ContextCompat.startActivity(mainActivity, intent, null)
+            }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = "Go to Details",
@@ -392,32 +521,14 @@ fun TripPlans(plan: Plans){
     }
 }
 
-data class Plans(val name: String, val datetimeV: String, val description: String)
 
-fun generateDummyTripPlansList(size: Int): List<Plans> {
-    val dummyList = mutableListOf<Plans>()
-
-    for (i in 1..size) {
-        dummyList.add(
-            Plans(
-                name = "Trip $i",
-                datetimeV = "2023-01-01 12:00 PM", // Replace with your desired format and data
-                description = "Description for Trip $i"
-            )
-        )
-    }
-
-    return dummyList
-}
-
-fun generateDummySuggestionsList(size: Int): List<Plans> {
-    val dummyList = mutableListOf<Plans>()
+fun generateDummySuggestionsList(size: Int): List<Trip> {
+    val dummyList = mutableListOf<Trip>()
 
     for (i in 1..size) {
         dummyList.add(
-            Plans(
-                name = "Suggestion $i",
-                datetimeV = "2023-01-01 12:00 PM", // Replace with your desired format and data
+            Trip(
+                title = "Suggestion $i",
                 description = "Description for Suggestion $i"
             )
         )
@@ -430,6 +541,94 @@ fun generateDummySuggestionsList(size: Int): List<Plans> {
 @Composable
 fun AppPreview() {
     Assignment4Theme {
-        Body("Android")
+        //Body()
+    }
+}
+
+data class AutocompletePlace(
+    val placeId: String,
+    val name: String
+)
+
+fun Place.toAutocompletePlace(): AutocompletePlace {
+    return AutocompletePlace(placeId!!, name!!)
+}
+
+@Composable
+fun AutocompletePlacePicker(onPlaceSelected: (AutocompletePlace) -> Unit) {
+    val context = LocalContext.current
+    val density = LocalDensity.current.density
+    var selectedPlace by remember { mutableStateOf<AutocompletePlace?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val autocompleteFragment = remember {
+        AutocompleteSupportFragment.newInstance().apply {
+            setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
+            setActivityMode(AutocompleteActivityMode.OVERLAY)
+        }
+    }
+
+    // Compose UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Autocomplete fragment
+        AndroidView(factory = { context ->
+            autocompleteFragment.requireView().apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    (48 * density).toInt() // Adjust height as needed
+                )
+            }
+        }) { view ->
+            // Add the view to your Compose layout
+        }
+
+        // Search bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                autocompleteFragment.setText(it)
+            },
+            label = { Text("Search for a place") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
+        // Button to log selected place
+        Button(
+            onClick = {
+                selectedPlace?.let {
+                    onPlaceSelected(it)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text("Log Selected Place")
+        }
+    }
+
+    // Set up the PlaceSelectionListener
+    LaunchedEffect(autocompleteFragment) {
+        autocompleteFragment.setOnPlaceSelectedListener(object : AutocompleteSupportFragment.OnPlaceSelectedListener() {
+            override fun onPlaceSelected(place: AutocompletePlace) {
+                selectedPlace = place
+                keyboardController?.hide()
+            }
+
+            override fun onError(status: Status) {
+                Log.e("AutocompleteExample", "Error: $status")
+            }
+        })
     }
 }

@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "gradle",
+			"id": "/home/sarvz/Projects/SMD-Assignment-4buildEnvironmentAssignment 4",
+			"script": "buildEnvironment",
+			"description": "Displays all buildscript dependencies declared in root project 'Assignment 4'.",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"project": "Assignment 4",
+			"buildFile": "/home/sarvz/Projects/SMD-Assignment-4/build.gradle.kts",
+			"rootProject": "Assignment 4",
+			"projectFolder": "/home/sarvz/Projects/SMD-Assignment-4",
+			"workspaceFolder": "/home/sarvz/Projects/SMD-Assignment-4",
+			"args": "",
+			"javaDebug": false,
+			"problemMatcher": [
+				"$gradle"
+			],
+			"label": "gradle: buildEnvironment"
+		}
+	]
+}
